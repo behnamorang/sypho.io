@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sypho — Recover More Patients, Automatically</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#06060f;
+  --bg2:#0a0a18;
+  --bg3:#0d0d20;
+  --blue:#2563EB;
+  --blue-l:#3b82f6;
+  --blue-xl:#60a5fa;
+  --blue-glow:rgba(37,99,235,0.15);
+  --teal:#0d9488;
+  --teal-l:#14b8a6;
+  --teal-xl:#2dd4bf;
+  --white:#fff;
+  --off:#e8eaf0;
+  --gray:#8888a8;
+  --gray2:#555570;
+  --border:rgba(255,255,255,0.06);
+  --border2:rgba(13,148,136,0.2);
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--white);font-family:'DM Sans',sans-serif;font-weight:300;overflow-x:hidden;-webkit-font-smoothing:antialiased;cursor:none}
+
+/* CURSOR */
+.cursor{position:fixed;width:8px;height:8px;background:var(--teal);border-radius:50%;pointer-events:none;z-index:9999;transition:transform 0.1s;mix-blend-mode:screen;will-change:left,top}
+.cursor-ring{position:fixed;width:32px;height:32px;border:1px solid rgba(13,148,136,0.5);border-radius:50%;pointer-events:none;z-index:9998;will-change:left,top}
+
+/* NOISE */
+body::after{content:'';position:fixed;inset:0;opacity:0.18;pointer-events:none;z-index:998;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E")}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 52px;height:68px;border-bottom:1px solid var(--border);background:rgba(6,6,15,0.85);backdrop-filter:blur(24px)}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:19px;letter-spacing:-0.3px;display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--white)}
+.logo-dot{width:7px;height:7px;border-radius:50%;background:var(--teal);animation:pulse 2s infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.3;transform:scale(0.7)}}
+.logo-med{font-size:10px;font-weight:600;letter-spacing:2px;color:var(--teal-xl);text-transform:uppercase;border:1px solid rgba(13,148,136,0.3);padding:3px 8px;border-radius:4px;margin-left:2px}
+.nav-links{display:flex;align-items:center;gap:32px;list-style:none}
+.nav-links a{color:var(--gray);text-decoration:none;font-size:14px;font-weight:400;transition:color 0.2s}
+.nav-links a:hover{color:var(--white)}
+.nav-cta{color:var(--white)!important;padding:8px 20px;border-radius:6px;background:var(--teal)!important;border:none!important;transition:background 0.2s!important;font-weight:500!important}
+.nav-cta:hover{background:var(--teal-l)!important}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px 24px 80px;position:relative;overflow:hidden}
+.hero-bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.018) 1px,transparent 1px);background-size:80px 80px;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black,transparent)}
+.orb{position:absolute;border-radius:50%;pointer-events:none}
+.orb1{width:700px;height:700px;background:radial-gradient(circle,rgba(13,148,136,0.08) 0%,transparent 65%);top:50%;left:50%;transform:translate(-50%,-55%);animation:ob1 8s ease-in-out infinite}
+.orb2{width:400px;height:400px;background:radial-gradient(circle,rgba(45,212,191,0.04) 0%,transparent 65%);top:25%;left:15%;animation:ob1 11s ease-in-out infinite reverse}
+.orb3{width:300px;height:300px;background:radial-gradient(circle,rgba(13,148,136,0.04) 0%,transparent 65%);bottom:20%;right:12%;animation:ob1 9s ease-in-out infinite 2s}
+@keyframes ob1{0%,100%{transform:translate(-50%,-55%) scale(1)}50%{transform:translate(-50%,-52%) scale(1.04)}}
+
+.hero-badge{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(13,148,136,0.3);background:rgba(13,148,136,0.06);padding:6px 18px;border-radius:100px;font-size:11px;color:#5eead4;margin-bottom:40px;letter-spacing:2px;text-transform:uppercase;font-weight:500;animation:fadeUp 0.7s ease both}
+.badge-dot{width:5px;height:5px;border-radius:50%;background:var(--teal-l);animation:pulse 2s infinite}
+
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(42px,6.5vw,88px);font-weight:700;line-height:1.02;letter-spacing:-2px;max-width:840px;animation:fadeUp 0.7s ease 0.1s both}
+.hero h1 .dim{color:rgba(255,255,255,0.2);font-weight:600}
+.hero h1 .accent{color:var(--teal-xl);position:relative;display:inline-block}
+.hero h1 .accent::after{content:'';position:absolute;bottom:-3px;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--teal),transparent);border-radius:2px}
+
+.hero-sub{font-size:17px;color:var(--gray);max-width:520px;line-height:1.8;margin-top:28px;animation:fadeUp 0.7s ease 0.2s both;font-weight:300}
+.hero-actions{display:flex;gap:14px;margin-top:44px;animation:fadeUp 0.7s ease 0.3s both;flex-wrap:wrap;justify-content:center}
+.btn-p{background:var(--teal);color:#fff;padding:14px 32px;border-radius:7px;font-size:14px;font-weight:500;text-decoration:none;transition:all 0.2s;font-family:'DM Sans',sans-serif}
+.btn-p:hover{background:var(--teal-l);transform:translateY(-2px);box-shadow:0 8px 30px rgba(13,148,136,0.35)}
+.btn-s{background:transparent;color:var(--gray);padding:14px 32px;border-radius:7px;font-size:14px;text-decoration:none;border:1px solid var(--border);transition:all 0.2s;font-family:'DM Sans',sans-serif}
+.btn-s:hover{color:var(--white);border-color:rgba(255,255,255,0.15)}
+
+/* MARQUEE */
+.marquee-wrap{margin-top:72px;animation:fadeUp 0.7s ease 0.4s both;overflow:hidden;width:100%;position:relative}
+.marquee-wrap::before,.marquee-wrap::after{content:'';position:absolute;top:0;bottom:0;width:160px;z-index:2}
+.marquee-wrap::before{left:0;background:linear-gradient(90deg,var(--bg),transparent)}
+.marquee-wrap::after{right:0;background:linear-gradient(-90deg,var(--bg),transparent)}
+.marquee-track{display:flex;animation:marquee 28s linear infinite;width:max-content}
+.marquee-item{padding:14px 40px;border-right:1px solid var(--border);font-size:11px;font-weight:500;letter-spacing:2.5px;color:rgba(255,255,255,0.12);white-space:nowrap;text-transform:uppercase}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* STATS */
+.stats-row{display:flex;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-top:64px;animation:fadeUp 0.7s ease 0.5s both;background:rgba(255,255,255,0.015);width:100%;max-width:760px}
+.stat{padding:28px 0;border-right:1px solid var(--border);text-align:center;flex:1}
+.stat:last-child{border-right:none}
+.stat-n{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;letter-spacing:-0.5px;color:var(--teal-xl)}
+.stat-l{font-size:11px;color:var(--gray);margin-top:5px;letter-spacing:0.3px}
+
+/* SECTION BASE */
+.section{padding:120px 52px;max-width:1200px;margin:0 auto}
+.s-label{font-size:11px;text-transform:uppercase;letter-spacing:3px;color:var(--teal-l);margin-bottom:14px;font-weight:500}
+.s-title{font-family:'Syne',sans-serif;font-size:clamp(30px,3.8vw,52px);font-weight:700;letter-spacing:-1px;line-height:1.08}
+.s-title .dim{color:rgba(255,255,255,0.2)}
+.s-sub{font-size:16px;color:var(--gray);line-height:1.8;max-width:480px;margin-top:16px;font-weight:300}
+.divider{height:1px;background:var(--border);margin:0 52px}
+
+/* SERVICES — 3 benefit cards */
+.services-trio{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:56px;border-radius:18px;overflow:hidden}
+.svc-card{background:var(--bg2);padding:48px 40px;position:relative;overflow:hidden;border:1px solid var(--border);transition:border-color 0.4s}
+.svc-card:hover{border-color:var(--border2)}
+.svc-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(13,148,136,0.07),transparent);opacity:0;transition:opacity 0.4s}
+.svc-card:hover::before{opacity:1}
+.svc-icon{width:48px;height:48px;border-radius:14px;background:rgba(13,148,136,0.1);border:1px solid rgba(13,148,136,0.2);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:24px}
+.svc-card h3{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;letter-spacing:-0.3px;margin-bottom:12px;line-height:1.2}
+.svc-card p{font-size:15px;color:var(--gray);line-height:1.8;font-weight:300}
+.svc-num{position:absolute;bottom:20px;right:28px;font-family:'Syne',sans-serif;font-size:96px;font-weight:800;color:rgba(13,148,136,0.04);line-height:1;pointer-events:none;letter-spacing:-4px}
+
+/* HOW IT WORKS */
+.hiw-wrap{border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--bg2);padding:120px 0}
+.hiw-inner{max-width:1200px;margin:0 auto;padding:0 52px}
+.hiw-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin-top:56px;border:1px solid var(--border);border-radius:18px;overflow:hidden;background:var(--border)}
+.hiw-step{background:var(--bg2);padding:48px 40px;position:relative;transition:background 0.3s}
+.hiw-step:hover{background:var(--bg3)}
+.hiw-num{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:3px;color:var(--teal-l);margin-bottom:24px}
+.hiw-step h4{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:12px;letter-spacing:-0.3px}
+.hiw-step p{font-size:14px;color:var(--gray);line-height:1.75;font-weight:300}
+
+/* DASHBOARD SHOWCASE */
+.dash-wrap{padding:120px 0;overflow:hidden}
+.dash-inner{max-width:1200px;margin:0 auto;padding:0 52px}
+.dash-header{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:end;margin-bottom:56px}
+.feature-tabs{display:flex;gap:4px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;padding:4px;margin-top:40px;flex-wrap:wrap}
+.ftab{padding:9px 18px;border-radius:8px;font-size:13px;font-weight:400;color:var(--gray);cursor:pointer;transition:all 0.2s;white-space:nowrap;font-family:'DM Sans',sans-serif}
+.ftab.active{background:var(--teal);color:#fff;font-weight:500}
+.ftab:hover:not(.active){color:var(--white);background:rgba(255,255,255,0.05)}
+
+/* Dashboard window */
+.dash-window{background:var(--bg2);border:1px solid var(--border);border-radius:18px;overflow:hidden}
+.win-bar{display:flex;align-items:center;gap:8px;padding:14px 20px;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.02)}
+.win-dot{width:11px;height:11px;border-radius:50%}
+.win-url{flex:1;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px;padding:5px 14px;font-size:11px;color:var(--gray);font-family:monospace;margin:0 16px}
+.win-url span{color:var(--teal-xl)}
+.dash-panel{display:none;padding:28px}
+.dash-panel.active{display:block}
+.dp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.dp-card{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;padding:18px 16px}
+.dp-card-label{font-size:11px;color:var(--gray);letter-spacing:0.3px;margin-bottom:8px}
+.dp-card-val{font-family:'Syne',sans-serif;font-size:26px;font-weight:700;letter-spacing:-0.5px}
+.dp-card-val.up{color:#34d399}.dp-card-val.teal{color:var(--teal-xl)}
+.dp-card-change{font-size:11px;color:#34d399;margin-top:4px}
+.dp-row{display:grid;grid-template-columns:2fr 1fr;gap:12px}
+.dp-chart-block,.dp-list-block{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;padding:20px}
+.dp-chart-label,.dp-list-label{font-size:12px;color:var(--gray);margin-bottom:14px}
+.dp-bars{display:flex;align-items:flex-end;gap:6px;height:80px}
+.dp-bar{flex:1;border-radius:3px 3px 0 0;background:rgba(13,148,136,0.2)}
+.dp-bar.hi{background:var(--teal)}
+.dp-list-item{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
+.dp-list-item:last-child{border-bottom:none}
+.dp-list-name{color:rgba(255,255,255,0.7)}
+.badge{padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500}
+.b-new{background:rgba(52,211,153,0.12);color:#34d399;border:1px solid rgba(52,211,153,0.2)}
+.b-open{background:rgba(13,148,136,0.12);color:var(--teal-xl);border:1px solid rgba(13,148,136,0.2)}
+.b-won{background:rgba(168,85,247,0.12);color:#c084fc;border:1px solid rgba(168,85,247,0.2)}
+
+/* WhatsApp panel */
+.wa-header{display:flex;align-items:center;gap:12px;padding-bottom:16px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.wa-avatar{width:36px;height:36px;background:rgba(37,220,100,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;border:1px solid rgba(37,220,100,0.25)}
+.wa-contact{font-size:14px;font-weight:500}
+.wa-status{font-size:11px;color:#34d399}
+.wa-chat{display:flex;flex-direction:column;gap:10px}
+.wa-msg{max-width:72%;padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.6;font-weight:300}
+.wa-msg.in{background:rgba(255,255,255,0.05);border:1px solid var(--border);align-self:flex-start;border-bottom-left-radius:3px;color:rgba(255,255,255,0.8)}
+.wa-msg.out{background:rgba(13,148,136,0.2);border:1px solid rgba(13,148,136,0.25);align-self:flex-end;border-bottom-right-radius:3px}
+.wa-time{font-size:10px;color:var(--gray);margin-top:3px;text-align:right}
+
+/* Missed calls */
+.mc-item{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.mc-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.mc-miss{background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.2)}
+.mc-sent{background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.2)}
+.mc-info{flex:1}
+.mc-name{font-size:13px;font-weight:500;color:rgba(255,255,255,0.8)}
+.mc-detail{font-size:11px;color:var(--gray);margin-top:2px}
+.mc-replied{font-size:11px;color:#34d399;font-weight:500}
+.mc-pending{font-size:11px;color:#f59e0b;font-weight:500}
+.mc-time{font-size:11px;color:var(--gray2)}
+
+/* Calendar */
+.cal-layout{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cal-mini{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;padding:16px}
+.cal-month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-month-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;letter-spacing:-0.2px}
+.cal-nav-btn{width:22px;height:22px;border-radius:6px;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:rgba(255,255,255,0.5);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all 0.2s}
+.cal-nav-btn:hover{background:rgba(13,148,136,0.15);border-color:rgba(13,148,136,0.3);color:#fff}
+.cal-week-labels{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px}
+.cal-wl{text-align:center;font-size:9px;color:var(--gray);font-weight:500;letter-spacing:1px;text-transform:uppercase;padding:2px 0}
+.cal-days-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:0}
+.cal-day{aspect-ratio:1;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:400;color:rgba(255,255,255,0.25);cursor:pointer;transition:all 0.18s;position:relative;border:1px solid transparent}
+.cal-day:hover{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.7)}
+.cal-day.has-apt{color:rgba(255,255,255,0.7);border-color:rgba(13,148,136,0.2);background:rgba(13,148,136,0.07)}
+.cal-day.has-apt::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:3px;height:3px;border-radius:50%;background:var(--teal-l)}
+.cal-day.today{background:var(--teal);color:#fff;font-weight:700;border-color:transparent;box-shadow:0 0 0 2px rgba(13,148,136,0.3)}
+.cal-day.today:hover{background:var(--teal-l)}
+.cal-day.other-month{opacity:0.15}
+.cal-day.selected{background:rgba(13,148,136,0.18);border-color:rgba(13,148,136,0.4);color:#fff}
+.cal-apts-panel{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;flex-direction:column}
+.cal-sel-label{font-size:10px;color:var(--gray);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;font-weight:500}
+.cal-apts-scroll{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px}
+.cal-apt-row{display:flex;align-items:center;gap:8px;padding:7px 10px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:7px}
+.cal-apt-dot{width:5px;height:5px;border-radius:50%;background:var(--teal-l);flex-shrink:0}
+.cal-apt-name{flex:1;font-size:12px;color:rgba(255,255,255,0.7)}
+.cal-apt-time{font-size:11px;color:var(--gray)}
+
+/* Reviews panel */
+.rev-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.rev-stat{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+.rev-stat-n{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:#f59e0b}
+.rev-stat-l{font-size:11px;color:var(--gray);margin-top:3px}
+.rev-list{display:flex;flex-direction:column;gap:10px}
+.rev-item{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.rev-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.rev-name{font-size:13px;font-weight:500}
+.rev-stars{color:#f59e0b;font-size:12px;letter-spacing:1px}
+.rev-text{font-size:12px;color:var(--gray);line-height:1.6}
+.rev-date{font-size:10px;color:var(--gray2);margin-top:5px}
+
+/* BENTO */
+.bento-section{background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:120px 0}
+.bento-inner{max-width:1200px;margin:0 auto;padding:0 52px}
+.bento-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px;margin-top:56px}
+.bi{background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:32px;transition:border-color 0.3s,background 0.3s;overflow:hidden;position:relative}
+.bi:hover{border-color:var(--border2);background:var(--bg3)}
+.bi.s4{grid-column:span 4}.bi.s5{grid-column:span 5}.bi.s7{grid-column:span 7}
+.bi.s6{grid-column:span 6}.bi.s8{grid-column:span 8}.bi.s3{grid-column:span 3}
+.bi-icon{width:44px;height:44px;border-radius:12px;background:rgba(13,148,136,0.1);border:1px solid rgba(13,148,136,0.18);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:20px}
+.bi h4{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;letter-spacing:-0.3px;margin-bottom:10px}
+.bi p{font-size:13px;color:var(--gray);line-height:1.7;font-weight:300}
+.bi-big{font-family:'Syne',sans-serif;font-size:64px;font-weight:800;letter-spacing:-3px;color:var(--teal-xl);line-height:1;margin-bottom:8px}
+.bi-ghost{position:absolute;right:-10px;bottom:-20px;font-family:'Syne',sans-serif;font-size:110px;font-weight:800;letter-spacing:-4px;color:rgba(13,148,136,0.04);line-height:1;pointer-events:none}
+
+/* TRUST STRIP */
+.trust-strip{display:flex;align-items:center;justify-content:center;gap:40px;padding:40px 52px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:rgba(13,148,136,0.02);flex-wrap:wrap}
+.trust-item{display:flex;align-items:center;gap:10px;font-size:13px;color:rgba(255,255,255,0.5)}
+.trust-icon{font-size:16px}
+
+/* PRICING */
+.pricing-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:56px}
+.price-card{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:40px;position:relative;overflow:hidden;transition:border-color 0.3s}
+.price-card.featured{border-color:rgba(13,148,136,0.35)}
+.price-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(13,148,136,0.05),transparent);opacity:0;transition:opacity 0.3s}
+.price-card:hover::before{opacity:1}
+.price-badge{display:inline-flex;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--teal-xl);background:rgba(13,148,136,0.1);border:1px solid rgba(13,148,136,0.2);padding:4px 12px;border-radius:20px;margin-bottom:20px}
+.price-card h3{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;letter-spacing:-0.3px;margin-bottom:8px}
+.price-desc{font-size:14px;color:var(--gray);margin-bottom:28px;line-height:1.6}
+.price-amount{font-family:'Syne',sans-serif;font-size:42px;font-weight:800;letter-spacing:-1px;margin-bottom:4px}
+.price-amount .currency{font-size:20px;font-weight:600;vertical-align:super;margin-right:2px}
+.price-amount .period{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:300;color:var(--gray);letter-spacing:0}
+.price-note{font-size:12px;color:var(--gray);margin-bottom:32px}
+.price-features{list-style:none;margin-bottom:36px}
+.price-features li{font-size:14px;color:rgba(255,255,255,0.6);padding:9px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;font-weight:300}
+.price-features li::before{content:'✓';color:var(--teal-l);font-weight:700;font-size:12px;flex-shrink:0}
+.price-cta{display:block;text-align:center;padding:14px;border-radius:9px;font-size:14px;font-weight:500;text-decoration:none;transition:all 0.2s;font-family:'DM Sans',sans-serif}
+.price-cta.primary{background:var(--teal);color:#fff}
+.price-cta.primary:hover{background:var(--teal-l);transform:translateY(-1px);box-shadow:0 8px 30px rgba(13,148,136,0.3)}
+.price-cta.secondary{background:transparent;color:var(--gray);border:1px solid var(--border)}
+.price-cta.secondary:hover{color:var(--white);border-color:rgba(255,255,255,0.15)}
+.price-region{display:flex;gap:8px;margin-bottom:28px;flex-wrap:wrap}
+.region-btn{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);color:var(--gray);background:transparent;font-family:'DM Sans',sans-serif;transition:all 0.2s}
+.region-btn.active{background:rgba(13,148,136,0.15);border-color:rgba(13,148,136,0.35);color:var(--teal-xl)}
+
+/* PROOF */
+.proof-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin-top:56px;border:1px solid var(--border);border-radius:18px;overflow:hidden;background:var(--border)}
+.proof-card{background:var(--bg);padding:40px 36px;transition:background 0.3s}
+.proof-card:hover{background:var(--bg2)}
+.proof-stars{color:#f59e0b;font-size:14px;letter-spacing:2px;margin-bottom:16px}
+.proof-text{font-size:15px;color:rgba(255,255,255,0.65);line-height:1.8;font-style:italic;font-weight:300;margin-bottom:20px}
+.proof-author{font-size:12px;color:var(--teal-xl);font-weight:500;letter-spacing:0.5px}
+
+/* CTA SECTION */
+.cta-wrap{padding:120px 52px;text-align:center;position:relative;overflow:hidden}
+.cta-glow{position:absolute;width:800px;height:600px;background:radial-gradient(circle,rgba(13,148,136,0.07) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none}
+.cta-wrap h2{font-family:'Syne',sans-serif;font-size:clamp(36px,5vw,64px);font-weight:700;letter-spacing:-1.5px;line-height:1.05;max-width:620px;margin:0 auto 20px;position:relative}
+.cta-wrap .sub{color:var(--gray);font-size:17px;max-width:420px;margin:0 auto 48px;position:relative;line-height:1.7;font-weight:300}
+.cta-form{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:44px;max-width:520px;margin:0 auto;position:relative;text-align:left}
+.fg{margin-bottom:18px}
+.fg label{display:block;font-size:11px;font-weight:500;letter-spacing:0.8px;color:var(--gray);margin-bottom:8px;text-transform:uppercase}
+.fg input,.fg select{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:9px;padding:13px 16px;color:var(--white);font-size:14px;font-family:'DM Sans',sans-serif;font-weight:300;outline:none;transition:border-color 0.2s;appearance:none}
+.fg input:focus,.fg select:focus{border-color:rgba(13,148,136,0.4);background:rgba(13,148,136,0.03)}
+.fg input::placeholder{color:rgba(255,255,255,0.18)}
+.fg select option{background:#0a0a18}
+.form-submit{width:100%;background:var(--teal);color:#fff;border:none;border-radius:9px;padding:15px;font-size:15px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;margin-top:6px}
+.form-submit:hover{background:var(--teal-l);transform:translateY(-1px);box-shadow:0 8px 30px rgba(13,148,136,0.28)}
+.form-note{font-size:12px;color:rgba(160,160,184,0.45);text-align:center;margin-top:14px;line-height:1.6}
+.ty-screen{display:none;text-align:center;padding:40px 20px}
+.ty-screen h3{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;margin-bottom:12px}
+.ty-screen p{font-size:15px;color:var(--gray);margin-bottom:28px;line-height:1.7;font-weight:300}
+.wa-btn{display:inline-flex;align-items:center;gap:10px;background:#25D366;color:#fff;padding:14px 28px;border-radius:9px;font-size:15px;font-weight:500;text-decoration:none;transition:all 0.2s;font-family:'DM Sans',sans-serif}
+.wa-btn:hover{background:#20bd5a;transform:translateY(-1px)}
+
+/* CHATBOT */
+.chat-bubble{position:fixed;bottom:28px;right:28px;z-index:500}
+.chat-toggle{width:54px;height:54px;background:var(--teal);border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 24px rgba(13,148,136,0.4);transition:all 0.2s}
+.chat-toggle:hover{background:var(--teal-l);transform:scale(1.08)}
+.chat-win{position:absolute;bottom:68px;right:0;width:340px;background:var(--bg2);border:1px solid var(--border);border-radius:18px;overflow:hidden;display:none;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,0.6)}
+.chat-win.open{display:flex}
+.chat-hdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.chat-av{width:34px;height:34px;background:var(--teal);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:13px;font-weight:800}
+.chat-hdr-info h4{font-family:'Syne',sans-serif;font-size:14px;font-weight:700}
+.chat-hdr-info span{font-size:11px;color:#34d399}
+.chat-msgs{padding:16px;display:flex;flex-direction:column;gap:12px;max-height:280px;overflow-y:auto;scroll-behavior:smooth}
+.cmsg{max-width:85%;padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.6;font-weight:300}
+.cmsg.bot{background:rgba(255,255,255,0.05);border:1px solid var(--border);align-self:flex-start;border-bottom-left-radius:3px}
+.cmsg.user{background:var(--teal);align-self:flex-end;border-bottom-right-radius:3px}
+.cmsg.typing{display:flex;gap:4px;align-items:center;padding:12px 16px}
+.td{width:6px;height:6px;background:var(--gray);border-radius:50%;animation:ta 1.2s infinite}
+.td:nth-child(2){animation-delay:.2s}.td:nth-child(3){animation-delay:.4s}
+@keyframes ta{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+.chat-inp-row{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px}
+.chat-inp{flex:1;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--white);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;font-weight:300}
+.chat-inp:focus{border-color:rgba(13,148,136,0.4)}
+.chat-inp::placeholder{color:rgba(255,255,255,0.2)}
+.chat-send{background:var(--teal);border:none;border-radius:8px;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;flex-shrink:0}
+.chat-send:hover{background:var(--teal-l)}
+
+/* FOOTER */
+footer{padding:56px 52px 36px;border-top:1px solid var(--border)}
+.footer-top{display:grid;grid-template-columns:1.8fr 1fr 1fr 1fr;gap:40px;margin-bottom:52px}
+.f-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.footer-brand p{font-size:13px;color:var(--gray);line-height:1.8;max-width:240px;font-weight:300}
+.co-info{margin-top:16px;font-size:12px;color:rgba(160,160,184,0.38);line-height:2;font-weight:300}
+.footer-col h5{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.25);margin-bottom:16px}
+.footer-col a{display:block;font-size:13px;color:var(--gray);text-decoration:none;margin-bottom:11px;transition:color 0.2s;font-weight:300}
+.footer-col a:hover{color:var(--white)}
+.footer-btm{border-top:1px solid var(--border);padding-top:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.footer-btm span{font-size:12px;color:rgba(160,160,184,0.3)}
+
+/* ANIM */
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+.reveal{opacity:0;transform:translateY(28px);transition:opacity 0.75s ease,transform 0.75s ease}
+.reveal.visible{opacity:1;transform:none}
+.rd1{transition-delay:0.08s}.rd2{transition-delay:0.16s}.rd3{transition-delay:0.24s}
+
+@media(max-width:900px){
+  nav{padding:0 20px}.nav-links{display:none}
+  .hero{padding:100px 20px 60px}
+  .stats-row{flex-direction:column}.stat{border-right:none;border-bottom:1px solid var(--border);padding:18px}
+  .section{padding:72px 20px}.divider{margin:0 20px}
+  .services-trio,.hiw-steps,.proof-grid,.pricing-grid{grid-template-columns:1fr}
+  .hiw-inner,.dash-inner,.bento-inner{padding:0 20px}
+  .dash-header{grid-template-columns:1fr;gap:28px}
+  .dp-grid{grid-template-columns:1fr 1fr}.dp-row{grid-template-columns:1fr}
+  .bi.s4,.bi.s5,.bi.s7,.bi.s6,.bi.s8,.bi.s3{grid-column:span 12}
+  .cta-wrap{padding:72px 20px}
+  .trust-strip{gap:20px;padding:28px 20px}
+  footer{padding:40px 20px 28px}.footer-top{grid-template-columns:1fr 1fr}.footer-btm{flex-direction:column;text-align:center}
+}
+</style>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="logo"><span class="logo-dot"></span>sypho <span class="logo-med">MED</span></a>
+  <ul class="nav-links">
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#contact" class="nav-cta">Book Free Demo</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg-grid"></div>
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
+  <div class="hero-badge"><span class="badge-dot"></span>Built for Clinics · Oman · UAE · UK</div>
+  <h1>Recover more patients<br/><span class="accent">automatically.</span></h1>
+  <p class="hero-sub">Sypho helps clinics reduce no-shows, recover missed calls, and automate patient follow-up through WhatsApp.</p>
+  <div class="hero-actions">
+    <a href="#contact" class="btn-p">Book Free Demo →</a>
+    <a href="#how" class="btn-s">See How It Works</a>
+  </div>
+  <div class="marquee-wrap">
+    <div class="marquee-track">
+      <span class="marquee-item">Missed Call Recovery</span><span class="marquee-item">WhatsApp Automation</span><span class="marquee-item">Appointment Reminders</span><span class="marquee-item">Google Reviews</span><span class="marquee-item">Patient Follow-up</span><span class="marquee-item">No-Show Reduction</span><span class="marquee-item">Live Dashboard</span><span class="marquee-item">Repeat Bookings</span><span class="marquee-item">Missed Call Recovery</span><span class="marquee-item">WhatsApp Automation</span><span class="marquee-item">Appointment Reminders</span><span class="marquee-item">Google Reviews</span><span class="marquee-item">Patient Follow-up</span><span class="marquee-item">No-Show Reduction</span><span class="marquee-item">Live Dashboard</span><span class="marquee-item">Repeat Bookings</span>
+    </div>
+  </div>
+  <div class="stats-row">
+    <div class="stat"><div class="stat-n">94%</div><div class="stat-l">Missed-call recovery rate</div></div>
+    <div class="stat"><div class="stat-n">60%</div><div class="stat-l">Reduction in no-shows</div></div>
+    <div class="stat"><div class="stat-n">7 days</div><div class="stat-l">Live & running</div></div>
+    <div class="stat"><div class="stat-n">Clinics</div><div class="stat-l">Built specifically for clinics</div></div>
+  </div>
+</section>
+
+<!-- TRUST STRIP -->
+<div class="trust-strip">
+  <div class="trust-item"><span class="trust-icon">✅</span> WhatsApp Business API</div>
+  <div class="trust-item"><span class="trust-icon">🔒</span> GDPR-conscious data handling</div>
+  <div class="trust-item"><span class="trust-icon">🏥</span> Built specifically for clinics</div>
+  <div class="trust-item"><span class="trust-icon">📍</span> Oman-based company</div>
+  <div class="trust-item"><span class="trust-icon">⚡</span> Professional onboarding included</div>
+</div>
+
+<!-- SERVICES / CORE BENEFITS -->
+<section class="section" id="services">
+  <p class="s-label">What we do</p>
+  <h2 class="s-title">How Sypho Helps<br/><span class="dim">Clinics Grow</span></h2>
+  <p class="s-sub">Focused on outcomes — not software features.</p>
+  <div class="services-trio reveal">
+    <div class="svc-card">
+      <div class="svc-icon">📞</div>
+      <h3>Recover Missed Patients</h3>
+      <p>Every missed call gets an instant WhatsApp reply automatically. Patients who can't reach you are recovered before they book elsewhere.</p>
+      <div class="svc-num">01</div>
+    </div>
+    <div class="svc-card">
+      <div class="svc-icon">📅</div>
+      <h3>Reduce No-Shows</h3>
+      <p>Automated reminders and confirmations sent before every appointment. Clinics using Sypho see up to 60% fewer missed appointments.</p>
+      <div class="svc-num">02</div>
+    </div>
+    <div class="svc-card">
+      <div class="svc-icon">⭐</div>
+      <h3>Increase Reviews &amp; Repeat Bookings</h3>
+      <p>Happy patients automatically receive a follow-up asking for a review. Returning patients get re-engagement messages that bring them back.</p>
+      <div class="svc-num">03</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- HOW IT WORKS -->
+<div class="hiw-wrap" id="how">
+  <div class="hiw-inner">
+    <p class="s-label">Process</p>
+    <h2 class="s-title">Three steps.<br/><span class="dim">Zero hassle.</span></h2>
+    <div class="hiw-steps reveal">
+      <div class="hiw-step">
+        <div class="hiw-num">STEP 01</div>
+        <h4>Book a free demo</h4>
+        <p>Tell us about your clinic. We walk you through exactly how Sypho would work for your patient flow. No commitment required.</p>
+      </div>
+      <div class="hiw-step">
+        <div class="hiw-num">STEP 02</div>
+        <h4>We set everything up</h4>
+        <p>Our team handles the full onboarding. WhatsApp automations, reminders, follow-ups — all live within 7 days. No technical work on your end.</p>
+      </div>
+      <div class="hiw-step">
+        <div class="hiw-num">STEP 03</div>
+        <h4>Patients recover automatically</h4>
+        <p>Missed calls get replied to. No-shows drop. Reviews grow. Your dashboard shows everything happening in real time.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD SHOWCASE -->
+<div class="dash-wrap" id="features">
+  <div class="dash-inner">
+    <div class="dash-header">
+      <div>
+        <p class="s-label">Your clinic dashboard</p>
+        <h2 class="s-title">Everything visible.<br/><span class="dim">Nothing missed.</span></h2>
+        <p class="s-sub">One view. Every patient, booking, reminder, and review — live.</p>
+      </div>
+      <div>
+        <div class="feature-tabs" id="featureTabs">
+          <div class="ftab active" data-panel="whatsapp">WhatsApp</div>
+          <div class="ftab" data-panel="missed">Missed Calls</div>
+          <div class="ftab" data-panel="calendar">Appointments</div>
+          <div class="ftab" data-panel="reviews">Reviews</div>
+          <div class="ftab" data-panel="leads">Overview</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dash-window reveal">
+      <div class="win-bar">
+        <div class="win-dot" style="background:#ff5f57"></div>
+        <div class="win-dot" style="background:#ffbd2e"></div>
+        <div class="win-dot" style="background:#28ca41"></div>
+        <div class="win-url">app.<span>sypho</span>.io/clinic-dashboard</div>
+      </div>
+
+      <!-- WHATSAPP -->
+      <div class="dash-panel active" id="panel-whatsapp">
+        <div class="wa-header">
+          <div class="wa-avatar">💬</div>
+          <div><div class="wa-contact">Fatima Al Zaabi</div><div class="wa-status">● Online</div></div>
+        </div>
+        <div class="wa-chat">
+          <div class="wa-msg in">Hi, I tried calling but couldn't get through. Is there availability this week?<div class="wa-time">10:22</div></div>
+          <div class="wa-msg out">Hi Fatima! Sorry we missed your call. We have availability on Tuesday at 10am or Thursday at 2pm. Which works for you? 🗓️<div class="wa-time">10:22 | Auto-replied instantly</div></div>
+          <div class="wa-msg in">Thursday at 2pm please.<div class="wa-time">10:25</div></div>
+          <div class="wa-msg out">Perfect! Confirmed for Thursday 2pm. You'll receive a reminder the day before. See you then! 👋<div class="wa-time">10:25 | Auto-replied</div></div>
+        </div>
+      </div>
+
+      <!-- MISSED CALLS -->
+      <div class="dash-panel" id="panel-missed">
+        <div class="dp-grid">
+          <div class="dp-card"><div class="dp-card-label">Missed calls today</div><div class="dp-card-val" style="color:#f87171">5</div></div>
+          <div class="dp-card"><div class="dp-card-label">Auto-replies sent</div><div class="dp-card-val up">5</div><div class="dp-card-change">100% covered</div></div>
+          <div class="dp-card"><div class="dp-card-label">Converted to bookings</div><div class="dp-card-val teal">4</div></div>
+          <div class="dp-card"><div class="dp-card-label">Reply speed</div><div class="dp-card-val" style="color:#fff">&lt;10s</div></div>
+        </div>
+        <div class="mc-item"><div class="mc-icon mc-miss">📞</div><div class="mc-info"><div class="mc-name">+968 9x xx 4421</div><div class="mc-detail">Missed call · 9:14am</div></div><div class="mc-replied">WhatsApp sent ✓</div><div class="mc-time">09:14</div></div>
+        <div class="mc-item"><div class="mc-icon mc-sent">💬</div><div class="mc-info"><div class="mc-name">+968 9x xx 4421</div><div class="mc-detail">"Hi! We missed your call. We have availability Tue or Thu — which works?"</div></div><div class="mc-replied">Booking confirmed</div><div class="mc-time">09:14</div></div>
+        <div class="mc-item"><div class="mc-icon mc-miss">📞</div><div class="mc-info"><div class="mc-name">+971 50 xxx 7813</div><div class="mc-detail">Missed call · 11:32am</div></div><div class="mc-replied">WhatsApp sent ✓</div><div class="mc-time">11:32</div></div>
+        <div class="mc-item"><div class="mc-icon mc-miss">📞</div><div class="mc-info"><div class="mc-name">+44 7xxx xxx 902</div><div class="mc-detail">Missed call · 2:47pm</div></div><div class="mc-pending">Awaiting reply</div><div class="mc-time">14:47</div></div>
+      </div>
+
+      <!-- CALENDAR -->
+      <div class="dash-panel" id="panel-calendar">
+        <div class="dp-grid" style="margin-bottom:12px">
+          <div class="dp-card"><div class="dp-card-label">Today's appointments</div><div class="dp-card-val teal">8</div></div>
+          <div class="dp-card"><div class="dp-card-label">This week</div><div class="dp-card-val up">31</div></div>
+          <div class="dp-card"><div class="dp-card-label">No-shows</div><div class="dp-card-val" style="color:#fff">1</div><div class="dp-card-change" style="color:var(--teal-xl)">Reminders on</div></div>
+          <div class="dp-card"><div class="dp-card-label">Fill rate</div><div class="dp-card-val up">91%</div></div>
+        </div>
+        <div class="cal-layout">
+          <div class="cal-mini">
+            <div class="cal-month-nav">
+              <div class="cal-month-title" id="calMonthTitle"></div>
+              <div style="display:flex;gap:4px"><button class="cal-nav-btn" onclick="calPrev()">&lsaquo;</button><button class="cal-nav-btn" onclick="calNext()">&rsaquo;</button></div>
+            </div>
+            <div class="cal-week-labels"><div class="cal-wl">Mo</div><div class="cal-wl">Tu</div><div class="cal-wl">We</div><div class="cal-wl">Th</div><div class="cal-wl">Fr</div><div class="cal-wl">Sa</div><div class="cal-wl">Su</div></div>
+            <div class="cal-days-grid" id="calDaysGrid"></div>
+          </div>
+          <div class="cal-apts-panel">
+            <div class="cal-sel-label" id="calDateLabel">Appointments</div>
+            <div class="cal-apts-scroll" id="calApts"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REVIEWS -->
+      <div class="dash-panel" id="panel-reviews">
+        <div class="rev-stats">
+          <div class="rev-stat"><div class="rev-stat-n">4.9</div><div class="rev-stat-l">Avg rating</div></div>
+          <div class="rev-stat"><div class="rev-stat-n">143</div><div class="rev-stat-l">Total reviews</div></div>
+          <div class="rev-stat"><div class="rev-stat-n">+22</div><div class="rev-stat-l">This month</div></div>
+        </div>
+        <div class="rev-list">
+          <div class="rev-item"><div class="rev-top"><span class="rev-name">Layla Hassan</span><span class="rev-stars">★★★★★</span></div><div class="rev-text">"The reminder the day before was so helpful. Great experience from start to finish."</div><div class="rev-date">3 hours ago · Google</div></div>
+          <div class="rev-item"><div class="rev-top"><span class="rev-name">Ahmed Al Rashidi</span><span class="rev-stars">★★★★★</span></div><div class="rev-text">"They followed up after my appointment. Very professional, highly recommend."</div><div class="rev-date">Yesterday · Google</div></div>
+          <div class="rev-item"><div class="rev-top"><span class="rev-name">Sara Al Amri</span><span class="rev-stars">★★★★★</span></div><div class="rev-text">"Booked through WhatsApp in seconds. Reminder came the next day. Brilliant system."</div><div class="rev-date">2 days ago · Google</div></div>
+        </div>
+      </div>
+
+      <!-- OVERVIEW -->
+      <div class="dash-panel" id="panel-leads">
+        <div class="dp-grid">
+          <div class="dp-card"><div class="dp-card-label">New patients this week</div><div class="dp-card-val up">18</div><div class="dp-card-change">↑ 32% vs last week</div></div>
+          <div class="dp-card"><div class="dp-card-label">Follow-ups sent</div><div class="dp-card-val teal">41</div><div class="dp-card-change">Auto-sent</div></div>
+          <div class="dp-card"><div class="dp-card-label">No-shows this month</div><div class="dp-card-val up">3</div><div class="dp-card-change">↓ 58% vs before</div></div>
+          <div class="dp-card"><div class="dp-card-label">Google rating</div><div class="dp-card-val" style="color:#f59e0b">4.9★</div><div class="dp-card-change" style="color:var(--teal-xl)">+22 reviews</div></div>
+        </div>
+        <div class="dp-row">
+          <div class="dp-chart-block"><div class="dp-chart-label">Patient recovery this week</div><div class="dp-bars" id="leadsChart"></div></div>
+          <div class="dp-list-block"><div class="dp-list-label">Recent activity</div>
+            <div class="dp-list-item"><span class="dp-list-name">Fatima Al Zaabi</span><span class="badge b-new">Booked</span></div>
+            <div class="dp-list-item"><span class="dp-list-name">Ahmed Al Rashidi</span><span class="badge b-open">Reminder sent</span></div>
+            <div class="dp-list-item"><span class="dp-list-name">Noura Hassan</span><span class="badge b-won">Review received</span></div>
+            <div class="dp-list-item"><span class="dp-list-name">Omar Al Farsi</span><span class="badge b-new">Recovered</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BENTO FEATURES -->
+<div class="bento-section">
+  <div class="bento-inner">
+    <p class="s-label">Everything included</p>
+    <h2 class="s-title">Built to run<br/><span class="dim">while you treat patients.</span></h2>
+    <div class="bento-grid reveal">
+      <div class="bi s5">
+        <div class="bi-icon">📞</div>
+        <h4>Missed Call Recovery</h4>
+        <p>Every missed call triggers an instant WhatsApp message. Patients get a reply before they even think about booking elsewhere.</p>
+        <div class="bi-ghost">94%</div>
+      </div>
+      <div class="bi s4">
+        <div class="bi-big">60%</div>
+        <p style="font-size:14px;color:var(--gray);line-height:1.7;font-weight:300">Average reduction in no-shows for clinics on Sypho.</p>
+      </div>
+      <div class="bi s3">
+        <div class="bi-icon">💬</div>
+        <h4>WhatsApp First</h4>
+        <p>Every interaction happens on the channel patients already use. Zero friction.</p>
+      </div>
+      <div class="bi s4">
+        <div class="bi-icon">🔔</div>
+        <h4>Appointment Reminders</h4>
+        <p>Automated reminders sent 24 hours and 2 hours before. Patients confirm or reschedule automatically.</p>
+      </div>
+      <div class="bi s4">
+        <div class="bi-icon">⭐</div>
+        <h4>Review Collection</h4>
+        <p>Happy patients get a follow-up after their visit. 5-star reviews grow without lifting a finger.</p>
+      </div>
+      <div class="bi s4">
+        <div class="bi-big">7d</div>
+        <p style="font-size:14px;color:var(--gray);line-height:1.7;font-weight:300">From signup to fully live. Professional onboarding included.</p>
+      </div>
+      <div class="bi s6">
+        <div class="bi-icon">🔁</div>
+        <h4>Repeat Patient Follow-up</h4>
+        <p>Patients who haven't returned in 30, 60, or 90 days automatically receive a gentle re-engagement message. Repeat bookings increase on autopilot.</p>
+        <div class="bi-ghost">Re</div>
+      </div>
+      <div class="bi s6">
+        <div class="bi-icon">📊</div>
+        <h4>Real-time Clinic Dashboard</h4>
+        <p>Missed calls, bookings, reminders, reviews — all visible in one live view. See exactly what's happening in your clinic from any device, at any time.</p>
+        <div class="bi-ghost">→</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PROOF -->
+<section class="section">
+  <p class="s-label">What clinics say</p>
+  <h2 class="s-title">Real results.<br/><span class="dim">Real clinics.</span></h2>
+  <div class="proof-grid reveal">
+    <div class="proof-card">
+      <div class="proof-stars">★★★★★</div>
+      <p class="proof-text">"We used to lose 6–8 patients a week just from missed calls. Now every single one gets a reply instantly. It's changed how our clinic operates."</p>
+      <div class="proof-author">DR. KHALID A. — CLINIC, MUSCAT</div>
+    </div>
+    <div class="proof-card">
+      <div class="proof-stars">★★★★★</div>
+      <p class="proof-text">"Setup took less than a week. Within the first month we had 19 new Google reviews and no-shows dropped by more than half."</p>
+      <div class="proof-author">DR. IBRAHIM S. — DENTAL CLINIC, DUBAI</div>
+    </div>
+    <div class="proof-card">
+      <div class="proof-stars">★★★★★</div>
+      <p class="proof-text">"The reminder system alone is worth it. Patients appreciate the WhatsApp confirmation and our appointment fill rate went from 74% to 91%."</p>
+      <div class="proof-author">DR. SARA M. — SPECIALIST CLINIC, LONDON</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PRICING -->
+<section class="section" id="pricing">
+  <p class="s-label">Pricing</p>
+  <h2 class="s-title">Simple pricing.<br/><span class="dim">No surprises.</span></h2>
+  <p class="s-sub">Professional onboarding included with every plan. Switch or cancel anytime.</p>
+  <div style="margin-top:32px">
+    <div class="price-region" id="regionBtns">
+      <button class="region-btn active" onclick="switchRegion('OM',this)">🇴🇲 Oman (OMR)</button>
+      <button class="region-btn" onclick="switchRegion('AE',this)">🇦🇪 UAE (AED)</button>
+      <button class="region-btn" onclick="switchRegion('GB',this)">🇬🇧 UK (GBP)</button>
+    </div>
+  </div>
+  <div class="pricing-grid reveal">
+    <div class="price-card">
+      <div class="price-badge">Starter</div>
+      <h3>Starter</h3>
+      <p class="price-desc">For clinics ready to recover missed patients and reduce no-shows.</p>
+      <div class="price-amount"><span class="currency" id="starter-currency">OMR</span> <span id="starter-amount">79</span> <span class="period">/ month</span></div>
+      <p class="price-note" id="starter-note">Professional onboarding included</p>
+      <ul class="price-features">
+        <li>Missed call WhatsApp recovery</li>
+        <li>Appointment reminders (24hr &amp; 2hr)</li>
+        <li>Post-visit review follow-up</li>
+        <li>WhatsApp Business API</li>
+        <li>Clinic dashboard</li>
+        <li>Setup in 7 days</li>
+      </ul>
+      <a href="#contact" class="price-cta secondary">Book a Demo →</a>
+    </div>
+    <div class="price-card featured">
+      <div class="price-badge">Most Popular</div>
+      <h3>Growth</h3>
+      <p class="price-desc">For clinics that want full patient recovery, retention, and reputation growth.</p>
+      <div class="price-amount"><span class="currency" id="growth-currency">OMR</span> <span id="growth-amount">149</span> <span class="period">/ month</span></div>
+      <p class="price-note" id="growth-note">Professional onboarding included</p>
+      <ul class="price-features">
+        <li>Everything in Starter</li>
+        <li>Repeat patient re-engagement</li>
+        <li>Advanced review campaign</li>
+        <li>Patient retention sequences</li>
+        <li>Priority WhatsApp support</li>
+        <li>Monthly performance report</li>
+      </ul>
+      <a href="#contact" class="price-cta primary">Book a Demo →</a>
+    </div>
+  </div>
+  <p style="text-align:center;font-size:13px;color:var(--gray);margin-top:28px">Not sure which plan? <a href="#contact" style="color:var(--teal-xl);text-decoration:none">Book a free demo</a> and we'll recommend the right fit for your clinic.</p>
+</section>
+
+<!-- CTA -->
+<div class="cta-wrap" id="contact">
+  <div class="cta-glow"></div>
+  <h2>Ready to recover<br/><span style="color:var(--teal-xl)">more patients?</span></h2>
+  <p class="sub">Book a free 20-minute demo. We'll show you exactly how Sypho works for your clinic.</p>
+  <div class="cta-form">
+    <div id="formScreen">
+      <div class="fg"><label>Clinic Name</label><input type="text" id="f-name" placeholder="Your clinic name"/></div>
+      <div class="fg"><label>Your Name</label><input type="text" id="f-doctor" placeholder="Dr. / Manager name"/></div>
+      <div class="fg"><label>Phone / WhatsApp</label><input type="tel" id="f-phone" placeholder="+968 | +971 | +44"/></div>
+      <div class="fg"><label>Email</label><input type="email" id="f-email" placeholder="you@clinic.com"/></div>
+      <button class="form-submit" onclick="submitForm()">Book Free Demo →</button>
+      <p class="form-note">No commitment. We respond within a few hours.<br/>Or reach us directly on <a href="https://wa.me/96890135401" target="_blank" style="color:var(--teal-xl);text-decoration:none">WhatsApp</a>.</p>
+    </div>
+    <div class="ty-screen" id="thankScreen">
+      <div style="font-size:44px;margin-bottom:16px">✓</div>
+      <h3>We'll be in touch.</h3>
+      <p>Our team will reach out within a few hours. For a faster response, message us directly on WhatsApp.</p>
+      <a href="https://wa.me/96890135401?text=Hi%2C%20I%20just%20booked%20a%20demo%20on%20sypho.io" target="_blank" class="wa-btn">💬 Message us on WhatsApp</a>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <div class="f-logo"><span class="logo-dot"></span>sypho <span class="logo-med" style="font-size:9px;margin-left:4px">MED</span></div>
+      <p>A premium patient recovery system for clinics in Oman, UAE, and the UK.</p>
+      <div class="co-info">New Future Ideas LLC<br/>Muscat, Oman<br/>hello@sypho.io</div>
+    </div>
+    <div class="footer-col">
+      <h5>Product</h5>
+      <a href="#how">How It Works</a>
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#contact">Book Demo</a>
+    </div>
+    <div class="footer-col">
+      <h5>Company</h5>
+      <a href="about.html">About</a>
+      <a href="mailto:hello@sypho.io">hello@sypho.io</a>
+      <a href="https://wa.me/96890135401" target="_blank">WhatsApp</a>
+    </div>
+    <div class="footer-col">
+      <h5>Legal</h5>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Service</a>
+      <a href="returns.html">Refund Policy</a>
+    </div>
+  </div>
+  <div class="footer-btm">
+    <span>© 2025 Sypho | New Future Ideas LLC | Muscat, Oman</span>
+    <span>Built for clinics · Oman · UAE · United Kingdom</span>
+  </div>
+</footer>
+
+<!-- CHATBOT -->
+<div class="chat-bubble">
+  <button class="chat-toggle" onclick="toggleChat()" id="chatBtn">💬</button>
+  <div class="chat-win" id="chatWin">
+    <div class="chat-hdr">
+      <div class="chat-av">S</div>
+      <div class="chat-hdr-info"><h4>Sypho AI</h4><span>● Online now</span></div>
+    </div>
+    <div class="chat-msgs" id="chatMsgs">
+      <div class="cmsg bot">Hi! I'm Sypho's assistant. Ask me how we help clinics recover missed patients and reduce no-shows. 👋</div>
+    </div>
+    <div class="chat-inp-row">
+      <input class="chat-inp" id="chatInp" placeholder="Ask something..." onkeydown="if(event.key==='Enter')sendChat()"/>
+      <button class="chat-send" onclick="sendChat()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// CURSOR
+const cur=document.getElementById('cursor'),ring=document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=(mx-4)+'px';cur.style.top=(my-4)+'px';});
+function animRing(){rx+=(mx-rx-16)*.12;ry+=(my-ry-16)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(animRing);}animRing();
+document.querySelectorAll('a,button,.ftab').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cur.style.transform='scale(2.5)';ring.style.transform='scale(1.4)';});
+  el.addEventListener('mouseleave',()=>{cur.style.transform='scale(1)';ring.style.transform='scale(1)';});
+});
+
+// SCROLL REVEAL
+const revEls=document.querySelectorAll('.reveal');
+const revObs=new IntersectionObserver(entries=>{entries.forEach((e,i)=>{if(e.isIntersecting)setTimeout(()=>e.target.classList.add('visible'),i*80);});},{threshold:0.1});
+revEls.forEach(r=>revObs.observe(r));
+
+// FEATURE TABS
+document.querySelectorAll('.ftab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.ftab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.dash-panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('panel-'+t.dataset.panel).classList.add('active');
+  });
+});
+
+// LEADS CHART
+const lc=document.getElementById('leadsChart');
+if(lc){[40,60,48,75,65,88,70].forEach((h,i)=>{const b=document.createElement('div');b.className='dp-bar'+(i===6?' hi':'');b.style.height=h+'%';lc.appendChild(b);});}
+
+// CALENDAR
+const calApts={
+  3:[{name:'Fatima Hassan',time:'10:00 AM'},{name:'Ahmed K.',time:'2:30 PM'}],
+  5:[{name:'Sara J.',time:'9:00 AM'},{name:'Mohammed S.',time:'11:00 AM'},{name:'Layla M.',time:'3:00 PM'}],
+  8:[{name:'Omar Al Farsi',time:'10:30 AM'}],
+  12:[{name:'Noura Hassan',time:'2:00 PM'},{name:'James T.',time:'4:00 PM'}],
+  14:[{name:'Fatima Hassan',time:'10:00 AM'},{name:'Ahmed K.',time:'2:30 PM'},{name:'Sara J.',time:'4:00 PM'}],
+  15:[{name:'Khalid A.',time:'11:00 AM'}],
+  19:[{name:'Sara Al Amri',time:'9:30 AM'},{name:'Ibrahim S.',time:'1:00 PM'}],
+  21:[{name:'Mohammed K.',time:'10:00 AM'},{name:'Aisha B.',time:'3:00 PM'}],
+  22:[{name:'David L.',time:'11:00 AM'}]
+};
+let calYear=2025,calMonth=4;const todayD=8;let selectedDay=todayD;
+const monthNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
+function renderCal(){
+  const grid=document.getElementById('calDaysGrid'),title=document.getElementById('calMonthTitle');
+  if(!grid||!title)return;
+  title.textContent=monthNames[calMonth]+' '+calYear;grid.innerHTML='';
+  const firstDay=new Date(calYear,calMonth,1).getDay();const startOffset=(firstDay===0)?6:firstDay-1;
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();const prevDays=new Date(calYear,calMonth,0).getDate();
+  for(let i=0;i<startOffset;i++){const d=document.createElement('div');d.className='cal-day other-month';d.textContent=prevDays-startOffset+1+i;grid.appendChild(d);}
+  for(let i=1;i<=daysInMonth;i++){
+    const d=document.createElement('div');let cls='cal-day';
+    if(i===todayD&&calMonth===4&&calYear===2025)cls+=' today';
+    if(calApts[i])cls+=' has-apt';if(i===selectedDay)cls+=' selected';
+    d.className=cls;d.textContent=i;const day=i;
+    d.addEventListener('click',()=>{selectedDay=day;renderCal();showApts(day);});
+    grid.appendChild(d);
+  }
+  const total=startOffset+daysInMonth;const remaining=total%7===0?0:7-(total%7);
+  for(let i=1;i<=remaining;i++){const d=document.createElement('div');d.className='cal-day other-month';d.textContent=i;grid.appendChild(d);}
+}
+function showApts(day){
+  const el=document.getElementById('calApts');
+  const lbl=document.getElementById('calDateLabel');
+  if(!el)return;
+  const apts=calApts[day]||[];
+  const monthNames2=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  if(lbl) lbl.textContent=monthNames2[calMonth]+' '+day+' — '+(apts.length?apts.length+' appointment'+(apts.length>1?'s':''):'No appointments');
+  if(apts.length===0){el.innerHTML='<div style="font-size:12px;color:var(--gray);padding:8px 0;text-align:center;margin-top:16px;opacity:0.6">Nothing scheduled for this day.</div>';return;}
+  let html='';
+  apts.forEach(a=>{html+='<div class="cal-apt-row"><span class="cal-apt-dot"></span><span class="cal-apt-name">'+a.name+'</span><span class="cal-apt-time">'+a.time+'</span></div>';});
+  el.innerHTML=html;
+}
+function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCal();}
+function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCal();}
+renderCal();showApts(todayD);
+
+// PRICING
+const pricingData={
+  OM:{starterCurrency:'OMR',starterAmt:'79',growthCurrency:'OMR',growthAmt:'149'},
+  AE:{starterCurrency:'AED',starterAmt:'699',growthCurrency:'AED',growthAmt:'1,499'},
+  GB:{starterCurrency:'£',starterAmt:'199',growthCurrency:'£',growthAmt:'349'}
+};
+function switchRegion(region,btn){
+  document.querySelectorAll('.region-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const p=pricingData[region];
+  document.getElementById('starter-currency').textContent=p.starterCurrency;
+  document.getElementById('starter-amount').textContent=p.starterAmt;
+  document.getElementById('growth-currency').textContent=p.growthCurrency;
+  document.getElementById('growth-amount').textContent=p.growthAmt;
+}
+
+// FORM
+function submitForm(){
+  const n=document.getElementById('f-name').value.trim();
+  const e=document.getElementById('f-email').value.trim();
+  if(!n||!e)return;
+  document.getElementById('formScreen').style.display='none';
+  document.getElementById('thankScreen').style.display='block';
+}
+
+// CHATBOT
+let chatOpen=false;
+function toggleChat(){chatOpen=!chatOpen;document.getElementById('chatWin').classList.toggle('open',chatOpen);document.getElementById('chatBtn').textContent=chatOpen?'✕':'💬';}
+const SYSPROMPT=`You are Sypho's friendly AI assistant on sypho.io. Sypho is a patient recovery and clinic automation system run by New Future Ideas LLC, based in Muscat, Oman. Sypho serves clinics, doctors, and healthcare professionals in Oman, UAE, and the UK.
+
+WHAT SYPHO DOES:
+- Missed call WhatsApp recovery: instant reply when a patient calls and no one answers
+- Appointment reminders: automated WhatsApp 24hr and 2hr before every appointment
+- No-show reduction: clinics see up to 60% fewer missed appointments
+- Post-visit review follow-up: automatically asks happy patients for a Google review
+- Repeat patient re-engagement: brings back patients who haven't returned in 30–90 days
+- Real-time clinic dashboard: all activity in one live view
+- Professional onboarding: live within 7 days, setup included
+
+PRICING (monthly):
+- Oman Starter: 79 OMR | Growth: 149 OMR
+- UAE Starter: 699 AED | Growth: 1,499 AED
+- UK Starter: £199 | Growth: £349
+
+CONTACT: WhatsApp +968 9013 5401 | hello@sypho.io
+For pricing discussions, direct to WhatsApp or the demo form.
+Keep answers short, warm, and professional. Focus on clinic outcomes (recovered patients, fewer no-shows, more reviews). Never mention GoHighLevel or GHL. Max 3 sentences per reply.`;
+
+async function sendChat(){
+  const inp=document.getElementById('chatInp');const msg=inp.value.trim();if(!msg)return;inp.value='';
+  addCMsg(msg,'user');const t=addTyping();
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:250,system:SYSPROMPT,messages:[{role:'user',content:msg}]})});
+    const d=await r.json();t.remove();
+    addCMsg(d.content&&d.content[0]?d.content[0].text:'Please reach us on WhatsApp: +968 9013 5401','bot');
+  }catch(e){t.remove();addCMsg('Something went wrong. Please WhatsApp us: +968 9013 5401','bot');}
+}
+function addCMsg(text,type){const m=document.getElementById('chatMsgs');const d=document.createElement('div');d.className='cmsg '+type;d.textContent=text;m.appendChild(d);m.scrollTop=m.scrollHeight;return d;}
+function addTyping(){const m=document.getElementById('chatMsgs');const d=document.createElement('div');d.className='cmsg bot typing';d.innerHTML='<span class="td"></span><span class="td"></span><span class="td"></span>';m.appendChild(d);m.scrollTop=m.scrollHeight;return d;}
+</script>
+</body>
+</html>
