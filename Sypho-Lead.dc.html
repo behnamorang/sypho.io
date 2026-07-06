@@ -18,20 +18,57 @@
   @keyframes logoBlink{0%,100%{opacity:1;}50%{opacity:.22;}}
   ::selection{background:#15d398;color:#04120c;}
   a{text-decoration:none;color:inherit;}
+
+  .nav-toggle{display:none;background:transparent;border:1px solid rgba(150,170,255,0.2);border-radius:8px;cursor:pointer;padding:10px 11px;flex-shrink:0;}
+  .nav-toggle-bar{display:block;width:20px;height:2px;background:#eef1fb;border-radius:1px;transition:transform .25s ease,opacity .25s ease;}
+  .nav-toggle-bar+.nav-toggle-bar{margin-top:5px;}
+  .site-nav.is-open .nav-toggle-bar:nth-child(1){transform:translateY(7px) rotate(45deg);}
+  .site-nav.is-open .nav-toggle-bar:nth-child(2){opacity:0;}
+  .site-nav.is-open .nav-toggle-bar:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+  @keyframes navSlideDown{from{opacity:0;transform:translateY(-10px);}to{opacity:1;transform:translateY(0);}}
+
+  @media(max-width:768px){
+    .site-nav{padding:16px 20px !important;}
+    .nav-toggle{display:flex;flex-direction:column;align-items:center;justify-content:center;}
+    .nav-links{display:none !important;position:absolute;top:100%;left:0;right:0;flex-direction:column !important;align-items:stretch !important;gap:0 !important;padding:8px 20px 20px !important;background:#080a14;border-bottom:1px solid rgba(150,170,255,0.09);box-shadow:0 12px 40px rgba(0,0,0,0.35);}
+    .site-nav.is-open .nav-links{display:flex !important;animation:navSlideDown .28s ease forwards;}
+    .nav-links a{padding:14px 0 !important;border-bottom:1px solid rgba(150,170,255,0.06);}
+    .nav-links a:last-child{margin-top:10px !important;justify-content:center !important;text-align:center;}
+    .hero-header{padding:88px 20px 48px !important;min-height:auto !important;}
+    .hero-actions{gap:12px !important;margin-top:28px !important;}
+    .section-features{padding:32px 20px 64px !important;}
+    .grid-2col{grid-template-columns:1fr !important;gap:14px !important;margin-top:32px !important;}
+    .contact-card{padding:36px 24px !important;}
+    .site-footer{padding:32px 20px !important;}
+  }
+  @media(max-width:480px){
+    .site-nav{padding:14px 16px !important;}
+    .nav-logo img{height:20px !important;}
+    .hero-header{padding:76px 16px 40px !important;}
+    .hero-actions{flex-direction:column !important;align-items:stretch !important;}
+    .hero-actions a{justify-content:center !important;}
+    .section-features{padding:24px 16px 48px !important;}
+    .contact-card{padding:28px 18px !important;}
+  }
 </style>
 </helmet>
 
 <div style="position:relative;background:#05060d;color:#eef1fb;overflow-x:hidden;">
 
-  <nav style="position:fixed;top:0;left:0;right:0;z-index:30;display:flex;align-items:center;justify-content:space-between;padding:18px 40px;background:#080a14;border-bottom:1px solid rgba(150,170,255,0.09);">
-    <a href="Sypho.dc.html" style="display:flex;align-items:center;gap:12px;"><span style="display:inline-flex;align-items:flex-end;gap:6px;"><span data-logo-dot style="width:12px;height:12px;border-radius:50%;background:#15d398;box-shadow:0 0 13px #15d398,0 0 4px #15d398;margin-bottom:3px;animation:logoBlink 1.7s ease-in-out infinite;"></span><img src="assets/sypho-wordmark.png" alt="sypho" style="height:23px;width:auto;"></span><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.16em;color:#15d398;text-transform:uppercase;border-left:1px solid rgba(150,170,255,0.2);padding-left:12px;">Lead</span></a>
-    <div style="display:flex;align-items:center;gap:28px;">
+  <nav class="site-nav" style="position:fixed;top:0;left:0;right:0;z-index:30;display:flex;align-items:center;justify-content:space-between;padding:18px 40px;background:#080a14;border-bottom:1px solid rgba(150,170,255,0.09);">
+    <a href="Sypho.dc.html" class="nav-logo" style="display:flex;align-items:center;gap:12px;"><span style="display:inline-flex;align-items:flex-end;gap:6px;"><span data-logo-dot style="width:12px;height:12px;border-radius:50%;background:#15d398;box-shadow:0 0 13px #15d398,0 0 4px #15d398;margin-bottom:3px;animation:logoBlink 1.7s ease-in-out infinite;"></span><img src="assets/sypho-wordmark.png" alt="sypho" style="height:23px;width:auto;"></span><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.16em;color:#15d398;text-transform:uppercase;border-left:1px solid rgba(150,170,255,0.2);padding-left:12px;">Lead</span></a>
+    <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="nav-menu">
+      <span class="nav-toggle-bar"></span>
+      <span class="nav-toggle-bar"></span>
+      <span class="nav-toggle-bar"></span>
+    </button>
+    <div id="nav-menu" class="nav-links" style="display:flex;align-items:center;gap:28px;">
       <a href="Sypho.dc.html" style="font-size:14px;color:#aeb6d4;display:inline-flex;align-items:center;gap:7px;">← Platform</a>
       <a href="#lead-contact" style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:500;color:#04120c;padding:10px 18px;border-radius:999px;background:linear-gradient(135deg,#36e3a4,#15d398);box-shadow:0 0 24px rgba(21,211,152,0.35);">Get leads</a>
     </div>
   </nav>
 
-  <header style="position:relative;min-height:92vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:130px 24px 70px;">
+  <header class="hero-header" style="position:relative;min-height:92vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:130px 24px 70px;">
     <canvas id="pf" style="position:absolute;inset:0;width:100%;height:100%;z-index:0;"></canvas>
     <div style="position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(110% 80% at 50% 40%, rgba(5,6,13,0) 35%, rgba(5,6,13,0.6) 75%, #05060d 100%);"></div>
     <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;">
@@ -41,19 +78,19 @@
       </div>
       <h1 style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:clamp(42px,6.6vw,88px);line-height:1.0;letter-spacing:-0.03em;margin:0;max-width:15ch;background:linear-gradient(180deg,#fff 35%,#a9e8d0 110%);-webkit-background-clip:text;background-clip:text;color:transparent;">High-value leads, delivered.</h1>
       <p style="max-width:60ch;margin:24px auto 0;font-size:clamp(16px,1.5vw,19px);line-height:1.6;color:#9aa3c4;">Deep data mining and powerful enrichment that finds, qualifies and delivers leads who are ready to buy. Built for high value businesses where every deal is worth chasing.</p>
-      <div style="display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin-top:36px;">
+      <div class="hero-actions" style="display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin-top:36px;">
         <a href="#lead-contact" style="font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:16px;color:#04120c;padding:15px 28px;border-radius:999px;background:linear-gradient(135deg,#36e3a4,#15d398);box-shadow:0 0 36px rgba(21,211,152,0.4);">Start getting leads →</a>
         <a href="#lead-features" style="font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:16px;color:#dfe5fb;padding:15px 28px;border-radius:999px;border:1px solid rgba(150,170,255,0.22);background:rgba(120,140,255,0.04);">How it works</a>
       </div>
     </div>
   </header>
 
-  <section id="lead-features" style="max-width:1180px;margin:0 auto;padding:40px 40px 90px;">
+  <section id="lead-features" class="section-features" style="max-width:1180px;margin:0 auto;padding:40px 40px 90px;">
     <div data-reveal style="opacity:0;transform:translateY(26px);transition:opacity .8s ease,transform .8s ease;">
       <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.22em;color:#15d398;text-transform:uppercase;">// The pipeline</span>
       <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:clamp(28px,3.6vw,46px);letter-spacing:-0.02em;margin:16px 0 0;max-width:22ch;">From raw signal to ready buyer.</h2>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:44px;">
+    <div class="grid-2col" style="display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:44px;">
       <div data-reveal style="opacity:0;transform:translateY(26px);transition:all .8s ease;padding:32px;border-radius:20px;border:1px solid rgba(150,170,255,0.1);background:linear-gradient(180deg,rgba(21,211,152,0.06),rgba(120,140,255,0.015));">
         <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#15d398;">01</div>
         <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:22px;margin:12px 0 8px;">Data mining at scale</h3>
@@ -78,14 +115,14 @@
   </section>
 
   <section id="lead-contact" style="text-align:center;padding:30px 24px 120px;">
-    <div data-reveal style="opacity:0;transform:translateY(26px);transition:all .9s ease;max-width:720px;margin:0 auto;padding:54px 40px;border-radius:26px;border:1px solid rgba(21,211,152,0.18);background:linear-gradient(135deg,rgba(21,211,152,0.1),rgba(56,102,255,0.05));">
+    <div data-reveal class="contact-card" style="opacity:0;transform:translateY(26px);transition:all .9s ease;max-width:720px;margin:0 auto;padding:54px 40px;border-radius:26px;border:1px solid rgba(21,211,152,0.18);background:linear-gradient(135deg,rgba(21,211,152,0.1),rgba(56,102,255,0.05));">
       <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:clamp(28px,4vw,46px);letter-spacing:-0.02em;margin:0;">Fill your pipeline with buyers.</h2>
       <p style="margin:18px auto 0;max-width:46ch;font-size:17px;line-height:1.6;color:#9aa3c4;">Tell us who your ideal customer is and we'll deliver qualified, enriched, high value leads.</p>
       <a href="mailto:lead@sypho.io" style="display:inline-flex;margin-top:30px;font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:16px;color:#04120c;padding:16px 32px;border-radius:999px;background:linear-gradient(135deg,#36e3a4,#15d398);box-shadow:0 0 40px rgba(21,211,152,0.42);">Start getting leads →</a>
     </div>
   </section>
 
-  <footer style="border-top:1px solid rgba(150,170,255,0.08);padding:38px 40px;">
+  <footer class="site-footer" style="border-top:1px solid rgba(150,170,255,0.08);padding:38px 40px;">
     <div style="max-width:1180px;margin:0 auto;display:flex;flex-wrap:wrap;gap:20px;justify-content:space-between;align-items:center;">
       <a href="Sypho.dc.html" style="display:flex;align-items:flex-end;gap:6px;"><span data-logo-dot style="width:10px;height:10px;border-radius:50%;background:#15d398;box-shadow:0 0 10px #15d398;margin-bottom:2px;animation:logoBlink 1.7s ease-in-out infinite;"></span><img src="assets/sypho-wordmark.png" alt="sypho" style="height:19px;"><span style="font-size:13px;color:#6b7392;margin-left:6px;">A Sypho venture</span></a>
       <span style="font-size:13px;color:#525a78;">© 2026 Sypho.io</span>
@@ -108,6 +145,7 @@ class Component extends DCLogic {
     this._reveal();
     this._field();
     this._applyDot();
+    this._initMobileNav();
   }
   componentDidUpdate(){ this._applyDot(); }
   _applyDot(){
@@ -138,6 +176,19 @@ class Component extends DCLogic {
     window.addEventListener('resize', checkScroll);
     checkScroll();
     setTimeout(()=>{ els.forEach(el=>{ if(el.style.opacity!=='1') show(el); }); }, 600);
+  }
+  _initMobileNav(){
+    const nav = document.querySelector('.site-nav');
+    const toggle = document.querySelector('.nav-toggle');
+    const menu = document.getElementById('nav-menu');
+    if(!nav || !toggle || !menu) return;
+    const close = ()=>{ nav.classList.remove('is-open'); toggle.setAttribute('aria-expanded','false'); };
+    toggle.addEventListener('click', ()=>{
+      const open = nav.classList.toggle('is-open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    menu.querySelectorAll('a').forEach(a=>a.addEventListener('click', close));
+    document.addEventListener('keydown', e=>{ if(e.key==='Escape') close(); });
   }
   _field(){
     const cv = document.getElementById('pf'); if(!cv) return;

@@ -47,6 +47,13 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 .nav-links a:hover{color:var(--white)}
 .nav-cta{color:var(--white)!important;padding:8px 20px;border-radius:6px;background:var(--teal)!important;border:none!important;transition:background 0.2s!important;font-weight:500!important}
 .nav-cta:hover{background:var(--teal-l)!important}
+.nav-toggle{display:none;background:transparent;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:10px 11px;flex-shrink:0;}
+.nav-toggle-bar{display:block;width:20px;height:2px;background:var(--white);border-radius:1px;transition:transform .25s ease,opacity .25s ease;}
+.nav-toggle-bar+.nav-toggle-bar{margin-top:5px;}
+nav.is-open .nav-toggle-bar:nth-child(1){transform:translateY(7px) rotate(45deg);}
+nav.is-open .nav-toggle-bar:nth-child(2){opacity:0;}
+nav.is-open .nav-toggle-bar:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+@keyframes navSlideDown{from{opacity:0;transform:translateY(-10px);}to{opacity:1;transform:translateY(0);}}
 
 /* HERO */
 .hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px 24px 80px;position:relative;overflow:hidden}
@@ -333,7 +340,14 @@ footer{padding:56px 52px 36px;border-top:1px solid var(--border)}
 .rd1{transition-delay:0.08s}.rd2{transition-delay:0.16s}.rd3{transition-delay:0.24s}
 
 @media(max-width:900px){
-  nav{padding:0 20px}.nav-links{display:none}
+  nav{position:relative;padding:0 20px}
+  .nav-toggle{display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .nav-links{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;align-items:stretch;gap:0;padding:8px 20px 20px;background:rgba(6,6,15,0.98);border-bottom:1px solid var(--border);box-shadow:0 12px 40px rgba(0,0,0,0.4);list-style:none;z-index:101;}
+  nav.is-open .nav-links{display:flex;animation:navSlideDown .28s ease forwards;}
+  .nav-links li{border-bottom:1px solid var(--border);}
+  .nav-links li:last-child{border-bottom:none;margin-top:8px;}
+  .nav-links a{display:block;padding:14px 0;}
+  .nav-cta{text-align:center;}
   .hero{padding:100px 20px 60px}
   .stats-row{flex-direction:column}.stat{border-right:none;border-bottom:1px solid var(--border);padding:18px}
   .section{padding:72px 20px}.divider{margin:0 20px}
@@ -355,7 +369,12 @@ footer{padding:56px 52px 36px;border-top:1px solid var(--border)}
 <!-- NAV -->
 <nav>
   <a href="index.html" class="logo"><span class="logo-dot"></span>sypho <span class="logo-med">MED</span></a>
-  <ul class="nav-links">
+  <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="nav-menu">
+    <span class="nav-toggle-bar"></span>
+    <span class="nav-toggle-bar"></span>
+    <span class="nav-toggle-bar"></span>
+  </button>
+  <ul class="nav-links" id="nav-menu">
     <li><a href="#how">How It Works</a></li>
     <li><a href="#features">Features</a></li>
     <li><a href="#pricing">Pricing</a></li>
@@ -780,6 +799,18 @@ document.querySelectorAll('a,button,.ftab').forEach(el=>{
   el.addEventListener('mouseenter',()=>{cur.style.transform='scale(2.5)';ring.style.transform='scale(1.4)';});
   el.addEventListener('mouseleave',()=>{cur.style.transform='scale(1)';ring.style.transform='scale(1)';});
 });
+
+// MOBILE NAV
+(function(){
+  const nav=document.querySelector('nav');
+  const toggle=document.querySelector('.nav-toggle');
+  const menu=document.getElementById('nav-menu');
+  if(!nav||!toggle||!menu)return;
+  const close=()=>{nav.classList.remove('is-open');toggle.setAttribute('aria-expanded','false');};
+  toggle.addEventListener('click',()=>{const open=nav.classList.toggle('is-open');toggle.setAttribute('aria-expanded',open?'true':'false');});
+  menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',close));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')close();});
+})();
 
 // SCROLL REVEAL
 const revEls=document.querySelectorAll('.reveal');
